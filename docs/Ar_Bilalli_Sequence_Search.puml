@@ -1,0 +1,34 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName DejaVu Sans
+skinparam defaultFontSize 15
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam classBackgroundColor #EDF5F6
+skinparam classBorderColor #183D50
+skinparam ArrowColor #183D50
+hide empty members
+hide footbox
+actor Guest
+participant "controller:\nRentalController" as C
+participant "service:\nRentalService" as S
+participant "renderer:\nRentalRenderer" as R
+Guest -> C : search(criteria)
+activate C
+C -> S : search(criteria)
+activate S
+note over S
+ Validate dates and guest count.
+ Filter active apartments by city, capacity
+ and availability using loaded records.
+ Domain calls summarized here.
+end note
+S --> C : Result(OK, matchingApartments)
+deactivate S
+C -> R : render(result)
+activate R
+R --> C : screen updated
+deactivate R
+C --> Guest : Result(OK, matchingApartments)
+deactivate C
+@enduml

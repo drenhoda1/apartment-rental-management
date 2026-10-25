@@ -1,0 +1,105 @@
+@startuml
+!pragma layout smetana
+skinparam backgroundColor white
+skinparam defaultFontName DejaVu Sans
+skinparam defaultFontSize 13
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam classBackgroundColor #EDF5F6
+skinparam classBorderColor #183D50
+skinparam ArrowColor #183D50
+skinparam roundcorner 0
+hide empty members
+package "Application structure" {
+class RentalController {
+ -service: RentalOperations
+ -renderer: RentalRenderer
+ +search(criteria): Result
+ +reserve(request): Result
+ +cancel(request): Result
+ +listReservations(actorId): Result
+ +saveListing(request): Result
+ +deactivateListing(request): Result
+}
+class RentalRenderer {
+ +render(result: Result)
+}
+interface RentalOperations {
+ +search(criteria): Result
+ +reserve(request): Result
+ +cancel(request): Result
+ +listReservations(actorId): Result
+ +saveListing(request): Result
+ +deactivateListing(request): Result
+}
+class RentalService {
+ -users: User[]
+ -apartments: Apartment[]
+ -reservations: Reservation[]
+ -storage: StorageHandler
+ +RentalService(storage: StorageHandler)
+ -persistCandidate(snapshot): Result
+}
+abstract class StorageHandler {
+ +{abstract} load(): RentalSnapshot
+ +{abstract} save(snapshot): SaveResult
+}
+RentalController "0..*" --> "1" RentalOperations : holds
+RentalController "0..*" --> "1" RentalRenderer : holds
+RentalService ..|> RentalOperations
+RentalService "0..*" --> "1" StorageHandler : injected
+
+}
+package "Domain model" {
+class User {
+ -id: String
+ -name: String
+ -role: Role
+ +isGuest(): boolean
+ +isManager(): boolean
+}
+class Apartment {
+ -id: String
+ -managerId: String
+ -title: String
+ -city: String
+ -capacity: int
+ -nightlyRateCents: int
+ -active: boolean
+ +canAccommodate(count: int): boolean
+ +quote(stay: DateRange): int
+ +update(details: ListingDetails)
+ +deactivate()
+}
+class Reservation {
+ -id: String
+ -guestId: String
+ -apartmentId: String
+ -guestCount: int
+ -totalCents: int
+ -status: Status
+ +blocks(stay: DateRange): boolean
+ +cancel(today: Date): Result
+}
+class DateRange <<immutable value>> {
+ -checkIn: Date
+ -checkOut: Date
+ +nights(): int
+ +overlaps(other: DateRange): boolean
+ +startsAfter(today: Date): boolean
+}
+User "1" -right- "0..*" Apartment : manages {MANAGER}
+User "1" -down- "0..*" Reservation : books {GUEST}
+Apartment "1" -down- "0..*" Reservation : booked apartment
+Reservation "0..*" -right-> "1" DateRange : stay
+Apartment ..> DateRange : quotes using
+note bottom of Reservation
+ Status = CONFIRMED or CANCELLED.
+ Role = GUEST or MANAGER.
+ References stored by ID in snapshots.
+ No cascade deletion of booking history.
+end note
+
+}
+RentalService ..> Reservation : creates
+@enduml

@@ -101,6 +101,3 @@ Open PNG files to view the diagrams, or use a PlantUML renderer to preview and e
 Each member reviews and develops their assigned work using their own GitHub account. Our recommended workflow is to create a branch, commit a meaningful change, open a pull request, receive teammate feedback and merge into `main`.
 
 If a diagram changes, update its PNG preview and the corresponding diagram in the proposal so the documents remain consistent.
-
-The individual W3/W4 Todo labs belong in each student's separate `swen383-todo` repository.
-

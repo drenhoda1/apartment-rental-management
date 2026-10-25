@@ -1,0 +1,40 @@
+@startuml
+!pragma layout smetana
+skinparam defaultFontName DejaVu Sans
+skinparam defaultFontSize 15
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam classBackgroundColor #EDF5F6
+skinparam classBorderColor #183D50
+skinparam ArrowColor #183D50
+hide empty members
+hide footbox
+actor Guest
+participant "controller:\nRentalController" as C
+participant "service:\nRentalService" as S
+participant "storage:\nStorageHandler" as H
+participant "renderer:\nRentalRenderer" as R
+Guest -> C : reserve(request)
+activate C
+C -> S : reserve(request)
+activate S
+note over S
+ Validate guest, apartment, dates and capacity.
+ Recheck availability and calculate price.
+ Create Reservation in an independent
+ candidate snapshot (domain calls summarized).
+end note
+S -> H : save(candidate)
+activate H
+H --> S : SaveResult(OK)
+deactivate H
+note over S : Accept saved candidate as current state.
+S --> C : Result(OK, reservation)
+deactivate S
+C -> R : render(result)
+activate R
+R --> C : screen updated
+deactivate R
+C --> Guest : Result(OK, reservation)
+deactivate C
+@enduml
